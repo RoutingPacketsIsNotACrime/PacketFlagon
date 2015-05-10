@@ -68,7 +68,7 @@
 		<div class="row pad30">
 			<div class="col-md-9 pad15">
 		    <h1>Generating an API Key</h1>	
-            <p>To generate an API key you can use the form below or call the API directly using CuRL e.g.; {literal}<code>curl https://packetflagon.is/api/create -d "{'domain':'YOURSERVERNAME.TLD','contact':'youremail@YOURSERVERNAME.TLD'}"</code>{/literal}</p>
+            <p>To generate an API key you can use the form below or call the API directly using CuRL e.g.; {literal}<code>curl https://packetflagon.is/api/create -d '{"domain":"YOURSERVERNAME.TLD","contact":"youremail@YOURSERVERNAME.TLD"}'</code>{/literal}</p>
 
             <div class="contact_form">  
 	            <div id="note"></div>
@@ -166,7 +166,7 @@
                     jsonMsg = msg;
                 }
 
-                if(jsonMsg.success == 'ok')
+                if(jsonMsg.success || jsonMsg.success == 'true')
                 {
                     result = '<div class="notification_ok" style="text-transform: none !important;">Success!<br/>Your API key is: '+jsonMsg.apikey+'<br/>You are ready for the next step below;</div>';
                 }

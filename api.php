@@ -29,6 +29,7 @@ $Action = strtolower($_GET['action']);
 
 $Return = array('success' => false);
 
+
 if($ProxyShard)
 {
     $Return['msg'] = "This server is a sharded end point and doesn't serve API requests";
@@ -41,13 +42,18 @@ $API = new API($PacketFlagonAPIKey,$FQDN,$PacketFlagonRoot,$ProxyShard);
 //Rate Limiting
 if($Action == 'create' || $Action == 'create_pac' || $Action == 'push_to_s3' || $Action == 'add_url_to_pac' || $Action == 'remove_url_from_pac')
 {
-    $RL = $memcache->get('RL-'.$_POST['api'].'-'.$_SERVER['REMOTE_ADDR']);
+    $APIKey = $_POST['api'];
+
+    if(empty($APIKey))
+	$APIKey = "-";
+
+    $RL = $memcache->get('RL-'.$APIKey.'-'.$_SERVER['REMOTE_ADDR']);
     if($RL == false)
     {
         $RL = 0;
     }
     $RL++;
-    $memcache->set('RL-'$_POST['api'],$RL,0,15);
+    $memcache->set('RL-'.$_POST['api'],$RL,0,15);
     if($RL > 15)
     {
         $Return['msg'] = "This server is performing too many requests and has been limited";
@@ -185,13 +191,23 @@ else
                 }
                 break;
 
+		case "create":
                 case "register_shard":
                 {
                     //We have to allow CORS for the javascript based auto-register script in setup.tpl
                     header("Access-Control-Allow-Origin: *");
 
+		    $jsonPOST = json_decode(file_get_contents('php://input'),true);
                     $FQDN = mysql_real_escape_string($_POST['fqdn']);
                     $Contact = mysql_real_escape_string($_POST['contact']);
+
+		    //print_r($jsonPOST);
+
+		    if(empty($FQDN) || $FQDN == "")
+			$FQDN = mysql_real_escape_string($jsonPOST['domain']);
+
+		   if(empty($Contact) || $Contact == "")
+                        $Contact = mysql_real_escape_string($jsonPOST['contact']);
 
                     if(empty($FQDN) || empty($Contact))
                     {
@@ -203,8 +219,9 @@ else
                         $APIKey = $API->RegisterShard($FQDN,$Contact);
                         if($APIKey['success'] !== false)
                         {
-                            $Return['success'] = true;
-                            $Return['apikey'] = $APIKey;
+                            //$Return['success'] = true;
+                            //$Return['apikey'] = $APIKey;
+			    $Return = $APIKey;
                         }    
                         else
                         {
@@ -223,7 +240,9 @@ else
             
                 case "get_pac":
                 {
-                    $PAC = $API->GetPACDetails($Hash);
+                    $PAC = $API->GetPACDetails($_POST['hash']);
+		    $Return = $PAC;
+		    $Return['success'] = true;
                 }
                 break;
     
@@ -235,13 +254,13 @@ else
 
                 case "push_to_s3":
                 {
-                    $S3Result = $API->PushToS3($Hash);
+                    $S3Result = $API->PushToS3($_POST['hash']);
                 }
                 break;
 
                 case "proxy_meta":
                 {
-                    $meta = $API->GetProxyMeta();
+                    $Return = $API->GetProxyMeta();
                 }
                 break;
 

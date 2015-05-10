@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>{$TITLE} | Configure Chrome</title>
+<title>{$TITLE} | {$SUBTITLE}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="How to configure Chrome to work with the selective PAC proxy">
+<meta name="description" content="{$SUBTITLE}">
 <meta name="author" content="Gareth Llewellyn @NetworkString">
 <link href='//fonts.googleapis.com/css?family=Lato:400,700,300' rel='stylesheet' type='text/css'>
 <!--[if IE]>

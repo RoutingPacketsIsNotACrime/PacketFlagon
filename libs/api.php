@@ -15,45 +15,50 @@ class API
 		$this->ProxyShard = $shard;
 	}
 
-	function ConfirmAuth($Hash, $api, $Seed)
+	function ConfirmAuth($AuthHash, $api, $Seed)
 	{
-		$Query = "select id from api_clients where hash = '$Hash'";
-        $result = mysql_query($Query);
-
-        if(mysql_errno() == 0 && mysql_num_rows() >= 1)
-        {
-            return ($Hash == md5($api . $Seed));
-        }
-        else
-        {
-            return false;
-        }
+		//$calc = md5($api . $Seed);
+		$Query = "select id from shards where apikey = '$api'";
+        	$result = mysql_query($Query);
+		
+		//print("Srv " . $api . " | Auth: ". md5($api . $Seed) . " | Seed: " . $api . $Seed . "<br/>");
+		//print("$AuthHash<br/>".md5($api . $Seed));
+	
+        	if(mysql_errno() == 0 && mysql_num_rows($result) >= 1)
+        	{
+            		return ($AuthHash == md5($api . $Seed));
+        	}
+        	else
+        	{
+            		return false;
+        	}
 	}
 
-    function RegisterShard($FQDN,$Contact)
-    {
-        $Query = "select id from shards where fqdn = '$FQDN'";
-        $result = mysql_query($Query);
+   	function RegisterShard($FQDN,$Contact)
+    	{
+        	$Query = "select id from shards where fqdn = '$FQDN'";
+        	$result = mysql_query($Query);
 
-        if(mysql_errno() == 0 && mysql_num_rows() == 0)
-        {
-            $APIKey = md5("$FQDN - $Contact " . date('Y-m-d-h-i-s'));
-            $Query = "insert into shards ('fqdn','contact','apikey') VALUES ('$FQDN','$Contact','$APIKey'";
-            $result = mysql_query($Query);
-            if(mysql_errno() == 0)
-            {
-                return array('success' => true, 'apikey' => $APIKey);
-            }
-            else
-            {
-                return array('success' => false, 'message' => 'There was an error adding that to mysql');
-            }
-        }
-        else
-        {
-            return array('success' => false, 'message' => 'That FQDN was already registered');
-        }
-    }
+        	if(mysql_errno() == 0 && mysql_num_rows($result) == 0)
+        	{
+            		$APIKey = md5("$FQDN - $Contact " . date('Y-m-d-h-i-s'));
+            		$Query = "insert into shards (fqdn,contact,apikey) VALUES ('$FQDN','$Contact','$APIKey')";
+            		$result = mysql_query($Query);
+
+            		if(mysql_errno() == 0)
+            		{
+                		return array('success' => true, 'apikey' => $APIKey);
+            		}
+            		else
+            		{
+                		return array('success' => false, 'message' => 'There was an error adding that to mysql');
+            		}
+        	}
+        	else
+        	{
+            		return array('success' => false, 'message' => 'That FQDN was already registered');
+        	}
+    	}
 
     /****
     
@@ -211,7 +216,7 @@ class API
 	{
 		if($this->ProxyShard)
 		{
-            $Payload = array('hash' => $Hash, 'auth' => md5($APIKey . $Hash), 'api' => $this->APIKey);
+            		$Payload = array('hash' => $Hash, 'auth' => md5($APIKey . $Hash), 'api' => $this->APIKey);
 			$return = $this->MakeRequest($Payload,'get_pac');
 		}
 		else
@@ -228,9 +233,9 @@ class API
 			$URLs = unserialize($mysql_return['urls']);
 			$Tor = $mysql_return['tor'];
 
-            $return = array('friendlyname' => $FriendlyName, 'description' => $Description, 'urls' => $URLs,'localproxy' => $Tor,'ro' => $Ro,'hash' => $Hash);
+            		$return = array('friendlyname' => $FriendlyName, 'description' => $Description, 'urls' => $URLs,'localproxy' => $Tor,'ro' => $Ro,'hash' => $Hash);
 		}
-        return $return;
+        	return $return;
 	}
 
 
@@ -409,12 +414,12 @@ Date: $dt
 
 function GetProxyMeta()
 {
-    $ProxyDetails = array();
+    	$ProxyDetails = array();
 
 	if($this->ProxyShard)
 	{
-        $Payload = array('auth' => md5($APIKey . date('d M H:i')), 'api' => $this->APIKey);
-		$ProxyDetails = $this->MakeRequest($Payload,'getproxymeta');
+        	$Payload = array('auth' => md5($APIKey . date('d M H:i')), 'api' => $this->APIKey);
+		$ProxyDetails = $this->MakeRequest($Payload,'proxy_meta');
 
 		/*$Proxy1 = 5;
 		$Proxy2 = 12;
@@ -423,18 +428,28 @@ function GetProxyMeta()
 	}
 	else
 	{
-		$Proxy1 = round(($memcache->get('proxy-1-1') / 102400) * 100);
-		$Proxy2 = round(($memcache->get('proxy-1-1') / 102400) * 100);
+	
+		if(isset($memcache))
+		{	
+			$Proxy1 = round(($memcache->get('proxy-1-1') / 102400) * 100);
+			$Proxy2 = round(($memcache->get('proxy-1-1') / 102400) * 100);
+		}
+		else
+		{
+			$Proxy1 = 0;
+			$Proxy2 = 0;
+		}
 
 		if($Proxy1 == 0)
-			$Proxy1 = rand(1,3);
+			$Proxy1 = rand(12,30);
 
 		if($Proxy2 == 0)
-			$Proxy2 = rand(1,4);
+			$Proxy2 = rand(14,40);
 
-		$ProxyDetails = array(array('id' => '1-1', 'bw' => $Proxy1,'sync' => date('d M H:i'),'status' => 'ok'),
+		$ProxyDetails['proxies'] = array(array('id' => '1-1', 'bw' => $Proxy1,'sync' => date('d M H:i'),'status' => 'ok'),
 				array('id' => '1-2', 'bw' => $Proxy2,'sync' => date('d M H:i'),'status' => 'ok'));
 	}
+	$ProxyDetails['success'] = 'ok';
 	return $ProxyDetails;
 }
 
@@ -443,32 +458,32 @@ private function MakeRequest($Payload,$Action)
 {
 	$ch = curl_init();
 	$url = $this->PFRoot . '/api/'.$Action;
-    foreach($Payload as $key=>$value) 
-    {
-        $fields_string .= $key.'='.$value.'&'; 
-    }
-    rtrim($fields_string, '&');
+	foreach($Payload as $key=>$value) 
+    	{
+        	$fields_string .= $key.'='.$value.'&'; 
+    	}
+    	rtrim($fields_string, '&');
 
 
 	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_HEADER, TRUE);
-    curl_setopt($ch, CURLOPT_POST, count($Payload));
-    curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
+    	curl_setopt($ch, CURLOPT_POST, count($Payload));
+    	curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 	$data = curl_exec($ch);
 	$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 	curl_close($ch); 
 
-    $json = json_decode($data,true);
+    	$json = json_decode($data,true);
 
-    if(isset($json['success']) && !empty($json['success']))
-    {
-        return $json;
-    }
-    else
-    {
+    	if(isset($json['success']) && !empty($json['success']))
+    	{
+        	return $json;
+    	}
+    	else
+    	{
 	    return array('success' => 'fail', 'message' => 'An unknown error occured: ' . $httpCode);
-    }
+    	}
 }
 
 // Sending HTTP query and receiving, with trivial keep-alive support

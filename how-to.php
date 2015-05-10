@@ -43,7 +43,8 @@
     }
     else if ($_GET['page'] == 'find-pac-frontends' ||
              $_GET['page'] == 'create-shard' ||
-             $_GET['page'] == 'create-socks5-proxy')
+             $_GET['page'] == 'create-socks5-proxy' ||
+	     $_GET['page'] == 'api')
     {
         $SUBTITLE = "";
         $INTRO = "";
@@ -72,6 +73,14 @@
                 $SUBTITLE = 'Create a Local SOCKS5 Proxy';
                 $INTRO = '<span>A SOCKS5 proxy</span> enables you to tunnel your browser <em>(and DNS)</em> traffic through a <span class="hue">remote server</span> that isn\'t subject to ISP censorship';
                 $smarty->assign('CONTENT', $smarty->fetch('howto-socks5-tunnel.tpl'));
+            }
+            break;
+
+	    case 'api':
+            {
+                $SUBTITLE = 'Using the PacketFlagon API';
+                $INTRO = 'The <span>PacketFlagon</span> <em>Application Programming Interface</em> allows shards <span class="hue">(or other applications)</span> to make use of the databases and PAC configs';
+                $smarty->assign('CONTENT', $smarty->fetch('howto-api.tpl'));
             }
             break;
         }

@@ -47,7 +47,7 @@
     }
     else
     {
-        $smarty->assign('PROXIES',$ProxyDetails);
+        $smarty->assign('PROXIES',$ProxyDetails['proxies']);
     }
 
     $smarty->display('about.tpl');

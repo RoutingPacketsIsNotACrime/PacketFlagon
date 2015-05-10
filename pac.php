@@ -26,23 +26,23 @@ header('X-Fuck-You-Censors: Wanna play a game of whack a mole?');
 ?>function FindProxyForURL(url, host) 
 {    
 <?php
-	require('./db.php');	
+    require_once('libs/config.php');
+    require_once('libs/api.php');
 
-    
-    $Hash = mysql_real_escape_string($_GET['hash']);
+    $Hash = $_GET['hash'];
 
-    $Query = "select * from pac where hash = '$Hash'";
-    $result = mysql_query($Query);
-    $PAC = mysql_fetch_assoc($result);
-    $details = unserialize($PAC['urls']);
+    $API = new API($PacketFlagonAPIKey,$FQDN,$PacketFlagonRoot,$ProxyShard);
+    $PACDetails = $API->GetPACDetails($Hash);
 
-    if(empty($details))
+    //$Hash = mysql_real_escape_string($_GET['hash']);
+
+    if(!isset($PACDetails['urls']) || empty($PACDetails['urls']))
     {
-        $details = array('wtfismyip.com');
+        $PACDetails['urls'] = array('wtfismyip.com');
     }
 
     $String = "";
-    foreach($details as $Element)
+    foreach($PACDetails['urls'] as $Element)
     {
     	$String .= '"'.strtolower($Element).'"' . ',';
     }
@@ -55,7 +55,7 @@ header('X-Fuck-You-Censors: Wanna play a game of whack a mole?');
     }
     else
     {
-	if($PAC['tor'] == 1)
+	if($PACDetails['localproxy'] == 1)
     	{
         	$Proxy = "localhost";
     	}
@@ -64,11 +64,11 @@ header('X-Fuck-You-Censors: Wanna play a game of whack a mole?');
 		$rand = rand ( 0, 8);
 		if($rand < 1)
 		{
-        		$Proxy = 'proxy-1-1.routingpacketsisnotacrime.uk';
+        		$Proxy = 'proxy-1-1.packetflagon.is';
 		}
 		else
 		{
-			$Proxy = 'proxy-1-2.routingpacketsisnotacrime.uk';
+			$Proxy = 'proxy-1-2.packetflagon.is';
 		}
 	}
     }
@@ -79,7 +79,7 @@ header('X-Fuck-You-Censors: Wanna play a game of whack a mole?');
     }
     else
     {
-	if($PAC['tor'] == 1)
+	if($PAC['localproxy'] == 1)
     	{
         	$Port = 9050;
     	}
@@ -95,7 +95,7 @@ header('X-Fuck-You-Censors: Wanna play a game of whack a mole?');
     }
     else
     {
-	if($PAC['tor'] == 1)
+	if($PAC['localproxy'] == 1)
     	{
 		$Type = "SOCKS";
     	}

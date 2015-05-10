@@ -33,14 +33,12 @@ $smarty->assign('TITLE',$ShardName);
 $smarty->assign('PROTO',($ForceHTTPS ? 'https' : 'http'));
 $smarty->assign('CREDIT',(empty($Credit) ? 'Anonymous' : $Credit));
 
-
-$Hash = mysql_real_escape_string($_GET['hash']);
-
+$Hash = $_GET['hash'];
 
 $API = new API($PacketFlagonAPIKey,$FQDN,$PacketFlagonRoot,$ProxyShard);
 $PACDetails = $API->GetPACDetails($Hash);
 
-if($PACDetails['success'] == 'fail')
+if($PACDetails['success'] == false || $PACDetails['success'] == 0)
 {
     $smarty->assign('ERROR_TITLE','Error:');
     $smarty->assign('ERROR_TEXT','A problem was encountered fetching the PAC details:<br/>' . $PACDetails['message']);
@@ -48,6 +46,7 @@ if($PACDetails['success'] == 'fail')
 }
 else
 {
+    //print_r($PACDetails);
     $Description = $PACDetails['description'];
     $FriendlyName = $PACDetails['friendlyname'];
     $Tor = $PACDetails['localproxy'];
@@ -98,7 +97,7 @@ foreach($URLs as $ID => $URL)
         $blocked = 'fa-arrows-h" style="color:green';
         $ToolTip = 'Not detected as blocked by blocked.org.uk';
 
-        if($memcache->get($URL) == "blocked")
+        if(isset($memcache) && $memcache->get($URL) == "blocked")
         {
                 $blocked = 'fa-warning" style="color:red"';
                 $ToolTip = 'Detected as blocked by at least 1 ISP by blocked.org.uk';
