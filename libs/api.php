@@ -216,7 +216,7 @@ class API
 	{
 		if($this->ProxyShard)
 		{
-            		$Payload = array('hash' => $Hash, 'auth' => md5($APIKey . $Hash), 'api' => $this->APIKey);
+            		$Payload = array('hash' => $Hash, 'auth' => md5($this->APIKey . $Hash), 'api' => $this->APIKey);
 			$return = $this->MakeRequest($Payload,'get_pac');
 		}
 		else
@@ -418,13 +418,8 @@ function GetProxyMeta()
 
 	if($this->ProxyShard)
 	{
-        	$Payload = array('auth' => md5($APIKey . date('d M H:i')), 'api' => $this->APIKey);
+        	$Payload = array('auth' => md5($this->APIKey . date('d M H:i')), 'api' => $this->APIKey);
 		$ProxyDetails = $this->MakeRequest($Payload,'proxy_meta');
-
-		/*$Proxy1 = 5;
-		$Proxy2 = 12;
-		$ProxyDetails = array(array('id' => '1-1', 'bw' => $Proxy1,'sync' => date('d M H:i'),'status' => 'ok'),
-				array('id' => '1-2', 'bw' => $Proxy2,'sync' => date('d M H:i'),'status' => 'ok'));*/
 	}
 	else
 	{

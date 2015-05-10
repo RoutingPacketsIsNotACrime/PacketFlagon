@@ -11,7 +11,7 @@
         //$memcache->addServer('127.0.0.1', 11211);
 
 	// FQDN (+ path if neccessary) for resources / callbacks
-	$FQDN = "example.com";
+	$FQDN = "AnExample.website";
 
 	// A friendly name for this shard / site
 	$ShardName = "Routing Packets Is Not A Crime Shard";
