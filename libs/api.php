@@ -6,6 +6,7 @@ class API
 	private $FQDN = "";
 	private $PFRoot = "";
 	private $ProxyShard = true;
+	public $Version = "0.67.0";
 
 	function __construct($key, $fqdn,$root,$shard)
 	{

@@ -28,4 +28,4 @@ Open Source Licenses
 |font/zsocial		| MIT		| Sam Collins (@smcllns)|  
 |libs/Smarty		| LGPLv3	| New Digital Group Inc|
 |			| 		| | 
-|All other code		| GPLv3		|Gareth Llewellyn (@NetworkString)|
+|All other code		| BSD		|Gareth Llewellyn (@NetworkString)|
