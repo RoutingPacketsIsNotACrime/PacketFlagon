@@ -5,7 +5,7 @@
 <title>{$TITLE} | About</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="A brief introduction into what this website is about">
-<meta name="author" content="Gareth Llewellyn @NetworkString">
+<meta name="author" content="Brass Horn Communications @BrassHornComms">
 <link rel="canonical" href="https://routingpacketsisnotacrime.uk/about" />
 <link href='https://fonts.googleapis.com/css?family=Lato:400,700,300' rel='stylesheet' type='text/css'>
 <!--[if IE]>
@@ -246,7 +246,7 @@ Consider using <a href="https://www.torproject.org">Tor</a> and read up on how t
 			<div class="row">
 				<div class="col-md-12">
 				<div class="copyright">
-				This proxy shard is provided by {$CREDIT|default:'Anonymous'} | #RoutingPacketsIsNotACrime | Copyright &copy; Gareth Llewellyn
+				This proxy shard is provided by {$CREDIT|default:'Anonymous'} | #RoutingPacketsIsNotACrime | Copyright &copy; Brass Horn Communications
                 </div>
 						</div>
 					</div>
