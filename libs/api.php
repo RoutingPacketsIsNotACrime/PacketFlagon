@@ -70,7 +70,13 @@ class API
 
 		if($this->ProxyShard)
 		{
-			$Payload = array('friendlyname' => $Name, 'description' => $Desc, 'password' => $Password, 'urls' => $URLS,'localproxy' => $UseTor, 'auth' => md5($this->APIKey . $URLS), 'api' => $this->APIKey);
+			$Payload = array('friendlyname' => $Name, 
+					 'description' => $Desc, 
+					 'password' => $Password, 
+					 'urls' => $URLs,
+					 'localproxy' => $UseTor, 
+					 'auth' => md5($this->APIKey . $URLs), 
+					 'api' => $this->APIKey);
 			$return = $this->MakeRequest($Payload,'create_pac');
 		}
 		else
@@ -419,7 +425,7 @@ function GetProxyMeta()
 
 	if($this->ProxyShard)
 	{
-        	$Payload = array('auth' => md5($this->APIKey . date('d M H:i')), 'api' => $this->APIKey);
+        	$Payload = array('auth' => md5($this->APIKey . date('d M')), 'api' => $this->APIKey);
 		$ProxyDetails = $this->MakeRequest($Payload,'proxy_meta');
 	}
 	else

@@ -29,9 +29,9 @@
         OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     */
 
-    require_once('libs/Smarty.class.php');
-    require_once('libs/config.php');
-    require_once('libs/api.php');
+	require_once('libs/Smarty.class.php');
+    	require_once('libs/config.php');
+    	require_once('libs/api.php');
 
 	$return = array();
 
@@ -41,11 +41,11 @@
 
 	$MD5 = md5($_SERVER['REMOTE_ADDR'] . date('Y-m-d His'));
 
-	$Name = htmlentities(mysql_real_escape_string($_POST['name']));
-	$Desc = htmlentities(mysql_real_escape_string($_POST['desc']));
+	$Name = $_POST['name'];
+	$Desc = $_POST['desc'];
 	$Password = "";
 	$URLs = array();
-	$UseTor = htmlentities(mysql_real_escape_string($_POST['use_tor_proxy']));
+	$UseTor = $_POST['use_tor_proxy'];
 	$Ro = 0;
 
 	if($UseTor == "yes")
@@ -81,38 +81,16 @@
 
 	if(empty($URLs))
 	{
-        $return['success'] = "fail";
-        $return['hash'] = "";
-        $return['message'] = 'No URLs were recognised, please ensure all URLs are separated with a comma ( , )';
+        	$return['success'] = "fail";
+        	$return['hash'] = "";
+        	$return['message'] = 'No URLs were recognised, please ensure all URLs are separated with a comma ( , )';
 		
 	}
 	else
 	{
 		$URLs = serialize($URLs);
-
-        if($ProxyShard)
-        {
-            $API = new API($PacketFlagonAPIKey,$FQDN);
-
-            $return = $API->CreatePAC($Name,$Desc,$Password,$URLs,$UseTor);
-        }
-        else
-        {
-		    $Query = "insert into pac (hash,name,description,password,ro,urls,tor) VALUES ('$MD5', '$Name','$Desc','$Password',$Ro,'$URLs',$UseTor)";
-		    $result = mysql_query($Query);	
-
-		    if(mysql_errno() == 0)
-		    {
-			    $return['hash'] = $MD5;
-			    $return['message'] = "Success!";
-		    }
-		    else
-		    {
-			    $return['hash'] = "";
-			    $return['success'] = "fail";
-			    $return['message'] = mysql_error();
-		    }
-        }
+		$API = new API($PacketFlagonAPIKey,$FQDN);
+            	$return = $API->CreatePAC($Name,$Desc,$Password,$URLs,$UseTor);
 	}
 
 	print(json_encode($return));

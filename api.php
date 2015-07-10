@@ -58,7 +58,7 @@ if($Action == 'create' || $Action == 'create_pac' || $Action == 'push_to_s3' || 
     if(empty($APIKey))
 	$APIKey = "-";
 
-    $RL = $memcache->get('RL-'.$APIKey.'-'.$_SERVER['REMOTE_ADDR']);
+    $RL = $memcache->get('RL-'.$_POST['api'].'-'.$_SERVER['REMOTE_ADDR']);
     if($RL == false)
     {
         $RL = 0;
