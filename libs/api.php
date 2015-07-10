@@ -81,13 +81,27 @@ class API
 		}
 		else
 		{
+			$MD5 = md5($URLs . date('Y-m-d His'));
+
+                       	if(empty($Password))
+                       	{
+                               $Password = "";
+                               $Ro = 0;
+                       	}
+                       	else
+                       	{
+                               $Password = md5($Password);
+                               $Ro = 1;
+                       	}
+
 			$Query = "insert into pac (hash,name,description,password,ro,urls,tor) VALUES ('$MD5', '$Name','$Desc','$Password',$Ro,'$URLs',$UseTor)";
 			$result = mysql_query($Query);
 
 			if(mysql_errno() == 0)
 			{
 				$return['hash'] = $MD5;
-				$return['message'] = "Success!";
+				$return['success'] = "ok";
+                               	$return['message'] = "Successfully created a new PAC!";
 			}
 			else
 			{
@@ -460,6 +474,7 @@ private function MakeRequest($Payload,$Action)
 {
 	$ch = curl_init();
 	$url = $this->PFRoot . '/api/'.$Action;
+	$fields_string = "";
 	foreach($Payload as $key=>$value) 
     	{
         	$fields_string .= $key.'='.$value.'&'; 
@@ -468,7 +483,7 @@ private function MakeRequest($Payload,$Action)
 
 
 	curl_setopt($ch, CURLOPT_URL, $url);
-	curl_setopt($ch, CURLOPT_HEADER, TRUE);
+	//curl_setopt($ch, CURLOPT_HEADER, TRUE);
     	curl_setopt($ch, CURLOPT_POST, count($Payload));
     	curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -484,7 +499,14 @@ private function MakeRequest($Payload,$Action)
     	}
     	else
     	{
-	    return array('success' => 'fail', 'message' => 'An unknown error occured: ' . $httpCode);
+		if(isset($json['message']) && !empty($json['message']))
+               	{
+                       return array('success' => 'fail', 'message' => $json['message']);
+               	}
+               	else
+               	{
+                       return array('success' => 'fail', 'message' => 'An unknown error occured: ' . $httpCode);
+               	}
     	}
 }
 

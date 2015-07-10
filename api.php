@@ -58,13 +58,13 @@ if($Action == 'create' || $Action == 'create_pac' || $Action == 'push_to_s3' || 
     if(empty($APIKey))
 	$APIKey = "-";
 
-    $RL = $memcache->get('RL-'.$_POST['api'].'-'.$_SERVER['REMOTE_ADDR']);
+    $RL = $memcache->get('RL-'.$APIKey.'-'.$_SERVER['REMOTE_ADDR']);
     if($RL == false)
     {
         $RL = 0;
     }
     $RL++;
-    $memcache->set('RL-'.$_POST['api'],$RL,0,15);
+    $memcache->set('RL-'.$APIKey,$RL,0,15);
     if($RL > 15)
     {
         $Return['msg'] = "This server is performing too many requests and has been limited";
@@ -144,7 +144,7 @@ switch($Action)
 if($Auth != true)
 {
         $Return['error_code'] = 403;
-        $Return['msg'] = "Authentication failed";
+        $Return['message'] = "Authentication failed";
 }
 else
 {
@@ -245,7 +245,7 @@ else
 
                 case "create_pac":
                 {
-                    //Doesn't exist yet
+		    $Return = $API->CreatePAC($_POST['friendlyname'],$_POST['description'],$_POST['password'],$_POST['urls'],$_POST['localproxy']);
                 }
                 break;
             
@@ -297,5 +297,7 @@ else
         }
 }
 
+if($Return['error_code'] == 403)
+	header('HTTP/1.0 403 Forbidden');
 
 print_r(json_encode($Return));
