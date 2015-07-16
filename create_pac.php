@@ -35,18 +35,18 @@
 
 	$return = array();
 
-	$return['success'] = "ok";
+	/*$return['success'] = "ok";
 	$return['hash'] = "ABCDEFG";
 	$return['message'] = 'Awesome!';
 
-	$MD5 = md5($_SERVER['REMOTE_ADDR'] . date('Y-m-d His'));
+	$MD5 = md5($_SERVER['REMOTE_ADDR'] . date('Y-m-d His'));*/
 
 	$Name = $_POST['name'];
 	$Desc = $_POST['desc'];
 	$Password = "";
 	$URLs = array();
 	$UseTor = $_POST['use_tor_proxy'];
-	$Ro = 0;
+	//$Ro = 0;
 
 	if($UseTor == "yes")
 	{
@@ -60,15 +60,15 @@
 	if(empty($_POST['password']))
 	{
 		$Password = "";
-		$Ro = 0;
+		//$Ro = 0;
 	}
 	else
 	{
 		$Password = md5($_POST['password']);
-		$Ro = 1;
+		//$Ro = 1;
 	}
 
-	$URLsArray = explode(",", $_POST['urls']);
+	/*$URLsArray = explode(",", $_POST['urls']);
 
 	foreach($URLsArray as $URL)
 	{
@@ -87,11 +87,12 @@
 		
 	}
 	else
-	{
-		$URLs = serialize($URLs);
-		$API = new API($PacketFlagonAPIKey,$FQDN);
-            	$return = $API->CreatePAC($Name,$Desc,$Password,$URLs,$UseTor);
-	}
+	{*/
+		//$URLs = serialize($URLs);
+		//$API = new API($PacketFlagonAPIKey,$FQDN);
+		$API = new API($PacketFlagonAPIKey,$FQDN,$PacketFlagonRoot,$ProxyShard);
+            	$return = $API->CreatePAC($Name,$Desc,$Password,$_POST['urls'],$UseTor);
+	//}
 
 	print(json_encode($return));
 ?>

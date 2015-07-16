@@ -14,7 +14,7 @@
 	$FQDN = "AnExample.website";
 
 	// A friendly name for this shard / site
-	$ShardName = "Routing Packets Is Not A Crime Shard";
+	$ShardName = "PacketFlagon HydraProxy Shard";
 
 	//If true then all explicit urls will be https://
 	//most references will be protocol-less e.g. //foo.bar/ 

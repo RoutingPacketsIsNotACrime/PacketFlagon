@@ -29,129 +29,42 @@
         OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     */
 
-    require_once('libs/config.php');
-    require_once('libs/api.php');
+	require_once('libs/config.php');
+	require_once('libs/api.php');
 
-    $return = array();
-    $return['success'] = "ok";
-    $return['hash'] = "ABCDEFG";
-    $return['message'] = 'Awesome!';
+	$return = array();
+	$return['success'] = "ok";
+	$return['hash'] = "ABCDEFG";
+	$return['message'] = 'Awesome!';
 
 	$Purpose = $_POST['update'];
-	$Hash = mysql_real_escape_string($_POST['hash']);
+	$Hash = $_POST['hash'];
 	$Password = "";
 
-    $API = new API($PacketFlagonAPIKey,$FQDN,$PacketFlagonRoot,$ProxyShard);
+	$API = new API($PacketFlagonAPIKey,$FQDN,$PacketFlagonRoot,$ProxyShard);
 
 	if(empty($_POST['password']))
-    {
-        $Password = "";
-    }
-    else
-    {
-        $Password = md5($_POST['password']);
-    }
-
-	if($Purpose == "remove_url")
 	{
-        $URL = $_POST['url'];
-        $return = $API->RemoveURLFromPAC($_POST['urls'],$Hash,$Password);
-
-		/*$URL = $_POST['url'];
-		$Query = "select urls from pac where hash = '$Hash' AND password = '$Password'";
-		$result = mysql_query($Query);
-
-		if(mysql_num_rows($result) == 0)
-		{
-			$return['success'] = "fail";
-		        unset($return['hash']);
-        		$return['message'] = 'Password does not match';			
-		}
-		else
-		{
-	        	$PAC = mysql_fetch_assoc($result);
-        		$URLs = unserialize($PAC['urls']);
-
-			foreach($URLs as $ID => $dbURL)
-			{
-				if($URL == $dbURL)
-				{
-					unset($URLs[$ID]);
-					break;
-				}
-			}
-
-			sort($URLs);
-
-			$URLs = serialize($URLs);
-
-			$Query = "update pac set urls = '$URLs' where hash = '$Hash' AND password = '$Password'";
-			$result = mysql_query($Query);
-		
-			if(mysql_errno() == 0)
-			{
-				$return['hash'] = $Hash;
-			}
-			else
-			{
-				$return['success'] = "fail";
-	        		unset($return['hash']);
-		        	$return['message'] = mysql_error();
-			}
-		}*/
-
-	}
-	else if($Purpose == "add_url")
-	{
-        $return = $API->AddURLToPAC($_POST['urls'],$Hash,$Password);
-
-		/*$URL = $_POST['url'];
-                $Query = "select urls from pac where hash = '$Hash' AND password = '$Password'";
-                $result = mysql_query($Query);
-
-                if(mysql_num_rows($result) == 0)
-                {
-                        $return['success'] = "fail";
-                        unset($return['hash']);
-                        $return['message'] = 'Password does not match';
-                }
-                else
-                {
-			$PAC = mysql_fetch_assoc($result);
-                        $URLs = unserialize($PAC['urls']);
-			$URLsArray = explode(",", $_POST['urls']);
-
-        		foreach($URLsArray as $URL)
-        		{
-                		$urlMeta = getHost($URL);
-                		if(!empty($urlMeta))
-                		{
-                        		$URLs[] = $urlMeta;
-                		}
-			}
-			sort($URLs);
-
-			$URLs = serialize($URLs);
-			$Query = "update pac set urls = '$URLs' where hash = '$Hash' and password = '$Password'";
-                        $result = mysql_query($Query);
-
-                        if(mysql_errno() == 0)
-                        {
-                                $return['hash'] = $Hash;
-                        }
-                        else
-                        {
-                                $return['success'] = "fail";
-                                unset($return['hash']);
-                                $return['message'] = mysql_error();
-                        }
-		}*/
+		$Password = "";
 	}
 	else
 	{
-        $return['success'] = "fail";
-        unset($return['hash']);
-        $return['message'] = "Unrecognised method";
+		$Password = md5($_POST['password']);
+	}
+
+	if($Purpose == "remove_url")
+	{
+		$return = $API->RemoveURLFromPAC($_POST['url'],$Hash,$Password);
+	}
+	else if($Purpose == "add_url")
+	{
+		$return = $API->AddURLToPAC($_POST['urls'],$Hash,$Password);
+	}
+	else
+	{
+		$return['success'] = "fail";
+		unset($return['hash']);
+		$return['message'] = "Unrecognised method";
 	}
 
 

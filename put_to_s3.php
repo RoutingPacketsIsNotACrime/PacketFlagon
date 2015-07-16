@@ -29,15 +29,15 @@
         OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     */
 
-    require_once('libs/config.php');
-    require_once('libs/api.php');
+	require_once('libs/config.php');
+	require_once('libs/api.php');
+	
+	$return = array();
+	$return['success'] = false;
+	$return['hash'] = "ABCDEFG";
+	$return['message'] = 'Something went wrong';
 
-    $return = array();
-    $return['success'] = "ok";
-    $return['hash'] = "ABCDEFG";
-    $return['message'] = 'Awesome!';
+	$Hash = $_POST['hash'];
 
-    $Hash = mysql_real_escape_string($_POST['hash']);
-
-    $API = new API($PacketFlagonAPIKey,$FQDN,$PacketFlagonRoot,$ProxyShard);
-    print(json_encode($API->PushToS3($Hash,$S3APIKey,$S3APISecret)));
+	$API = new API($PacketFlagonAPIKey,$FQDN,$PacketFlagonRoot,$ProxyShard);
+	print(json_encode($API->PushToS3($Hash,$S3APIKey,$S3APISecret)));

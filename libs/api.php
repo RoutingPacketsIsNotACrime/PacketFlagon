@@ -18,7 +18,8 @@ class API
 
 	function ConfirmAuth($AuthHash, $api, $Seed)
 	{
-		//$calc = md5($api . $Seed);
+		$api = mysql_real_escape_string($api);
+
 		$Query = "select id from shards where apikey = '$api'";
         	$result = mysql_query($Query);
 		
@@ -37,6 +38,9 @@ class API
 
    	function RegisterShard($FQDN,$Contact)
     	{
+		$FQDN = mysql_real_escape_string($FQDN);
+		$Contact = mysql_real_escape_string($Contact);
+
         	$Query = "select id from shards where fqdn = '$FQDN'";
         	$result = mysql_query($Query);
 
@@ -61,12 +65,10 @@ class API
         	}
     	}
 
-    /****
-    
-    ****/
+
 	function CreatePAC($Name,$Desc,$Password,$URLs,$UseTor)
 	{
-        $return = array('success' => 'fail', 'hash' => 'ABCDEF','message'=>'Information wants to be free');
+        	$return = array('success' => false, 'hash' => 'ABCDEF','message'=>'Information wants to be free');
 
 		if($this->ProxyShard)
 		{
@@ -81,6 +83,10 @@ class API
 		}
 		else
 		{
+			$Name = mysql_real_escape_string($Name);
+			$Desc = mysql_real_escape_string($Desc);
+			//Check URLs
+			$UseTor = mysql_real_escape_string($UseTor);
 			$MD5 = md5($URLs . date('Y-m-d His'));
 
                        	if(empty($Password))
@@ -90,9 +96,21 @@ class API
                        	}
                        	else
                        	{
-                               $Password = md5($Password);
+                               //$Password = md5($Password);
                                $Ro = 1;
                        	}
+
+			$URLsArray = explode(",", $URLs);
+			$URLs = array();
+        		foreach($URLsArray as $URL)
+        		{
+                		$urlMeta = getHost($URL);
+                		if(!empty($urlMeta))
+                		{
+                        		$URLs[] = strtolower($urlMeta);
+                		}
+        		}
+			$URLs = serialize($URLs);
 
 			$Query = "insert into pac (hash,name,description,password,ro,urls,tor) VALUES ('$MD5', '$Name','$Desc','$Password',$Ro,'$URLs',$UseTor)";
 			$result = mysql_query($Query);
@@ -100,140 +118,149 @@ class API
 			if(mysql_errno() == 0)
 			{
 				$return['hash'] = $MD5;
-				$return['success'] = "ok";
+				$return['success'] = true;
                                	$return['message'] = "Successfully created a new PAC!";
 			}
 			else
 			{
 				$return['hash'] = "";
-				$return['success'] = "fail";
-				$return['message'] = mysql_error();
+				$return['success'] = false;
+				$return['message'] = mysql_error() . $Query;
 			}
 		}
 		return $return;
 	}
 
-    function AddURLToPAC($_URL,$_Hash,$_Password)
-    {
-        $return = array('success' => 'fail', 'hash' => '','message'=>'Add URL failed');
+	function AddURLToPAC($_URL,$_Hash,$_Password)
+    	{
+        	$return = array('success' => false, 'hash' => '','message'=>'Add URL failed');
 
-        if($this->ProxyShard)
-        {
-            $Payload = array('urls' => $_URL, 'hash' => $_Hash, 'password' => $_Password, 'api' => $this->APIKey);
-            $return = $this->MakeRequest($Payload,'add_url_to_pac');
-        }
-        else
-        {
-            $Query = "select urls from pac where hash = '$_Hash' AND password = '$_Password'";
-            $result = mysql_query($Query);
+        	if($this->ProxyShard)
+        	{
+            		$Payload = array('urls' => $_URL, 'hash' => $_Hash, 'password' => $_Password, 'api' => $this->APIKey, 'auth' => md5($this->APIKey . $_URL));
+            		$return = $this->MakeRequest($Payload,'add_url_to_pac');
+        	}
+        	else
+        	{
+			$_URL = mysql_real_escape_string($_URL);
+			$_Hash = mysql_real_escape_string($_Hash);
 
-            if(mysql_num_rows($result) == 0)
-            {
-                $return['success'] = "fail";
-                unset($return['hash']);
-                $return['message'] = 'Password does not match';
-            }
-            else
-            {
-                $PAC = mysql_fetch_assoc($result);
-                $URLs = unserialize($PAC['urls']);
-                $URLsArray = explode(",", $_URL);
+			$Query = "select urls from pac where hash = '$_Hash' AND password = '$_Password'";
+			$result = mysql_query($Query);
 
-                foreach($URLsArray as $URL)
-                {
-                        $urlMeta = getHost($URL);
-                        if(!empty($urlMeta))
-                        {
-                                $URLs[] = $urlMeta;
-                        }
-                }
-                sort($URLs);
+			if(mysql_num_rows($result) == 0)
+			{
+				$return['success'] = false;
+				unset($return['hash']);
+				$return['message'] = 'Password does not match';
+			}
+			else
+			{
+                		$PAC = mysql_fetch_assoc($result);
+                		$URLs = unserialize($PAC['urls']);
+				$URLsArray = explode(",", $_URL);
 
-                $URLs = serialize($URLs);
-                $Query = "update pac set urls = '$URLs' where hash = '$_Hash' and password = '$_Password'";
-                $result = mysql_query($Query);
+ 				foreach($URLsArray as $URL)
+				{
+					$urlMeta = getHost($URL);
+					if(!empty($urlMeta))
+					{
+						$URLs[] = $urlMeta;
+					}
+				}
 
-                if(mysql_errno() == 0)
-                {
-                    $return['hash'] = $Hash;
-                    $return['message'] = "URL(s) added successfully!";
-                }
-                else
-                {
-                    $return['success'] = "fail";
-                    unset($return['hash']);
-                    $return['message'] = mysql_error();
-                }
-            }
-        }
+				sort($URLs);
 
-        return $return;
-    }
+ 				$URLs = serialize($URLs);
+				$Query = "update pac set urls = '$URLs' where hash = '$_Hash' and password = '$_Password'";
+				$result = mysql_query($Query);
 
+				if(mysql_errno() == 0)
+				{
+					unset($return['hash']);
+					$return['message'] = "URL(s) added successfully!";
+					$return['success'] = true;
+				}
+				else
+				{
+					$return['success'] = false;
+					unset($return['hash']);
+					$return['message'] = mysql_error();
+				}
+			}
+		}
 
-
-    function RemoveURLFromPAC($_URL,$_Hash,$_Password)
-    {
-
-        $return = array('success' => 'fail', 'hash' => '','message'=>'Removing URL failed');
-
-        if($this->ProxyShard)
-        {
-            $Payload = array('url' => $_URL, 'hash' => $_Hash, 'password' => $_Password, 'api' => $this->APIKey);
-            $return = $this->MakeRequest($Payload,'remove_url_from_pac');
-        }
-        else
-        {
-            $Query = "select urls from pac where hash = '$_Hash' AND password = '$_Password'";
-            $result = mysql_query($Query);
-
-            if(mysql_num_rows($result) == 0)
-            {
-                $return['success'] = "fail";
-                unset($return['hash']);
-                $return['message'] = 'Password does not match';
-            }
-            else
-            {
-                $PAC = mysql_fetch_assoc($result);
-                $URLs = unserialize($PAC['urls']);
-
-                foreach($URLs as $ID => $dbURL)
-                {
-                    if($_URL == $dbURL)
-                    {
-                        unset($URLs[$ID]);
-                        break;
-                    }
-                }
-
-                sort($URLs);
-
-                $URLs = serialize($URLs);
-
-                $Query = "update pac set urls = '$URLs' where hash = '$_Hash' AND password = '$_Password'";
-                $result = mysql_query($Query);
-
-                if(mysql_errno() == 0)
-                {
-                    $return['hash'] = $Hash;
-                    $return['message'] = "URL(s) removed successfully!";
-                }
-                else
-                {
-                    $return['success'] = "fail";
-                    unset($return['hash']);
-                    $return['message'] = mysql_error();
-                }
-            }
-        }
-
-        return $return;
-    }
+        	return $return;
+	}
 
 
 
-	function GetPACDetails($Hash)
+	function RemoveURLFromPAC($_URL,$_Hash,$_Password)
+    	{
+
+        	$return = array('success' => false, 'hash' => '','message'=>'Removing URL failed');
+
+       		if($this->ProxyShard)
+        	{
+            		$Payload = array('url' => $_URL, 'hash' => $_Hash, 'password' => $_Password, 'api' => $this->APIKey, 'auth' => md5($this->APIKey . $_URL));
+            		$return = $this->MakeRequest($Payload,'remove_url_from_pac');
+        	}
+        	else
+        	{
+			$_Hash = mysql_real_escape_string($_Hash);
+			$_Password = mysql_real_escape_string($_Password);
+
+            		$Query = "select urls from pac where hash = '$_Hash' AND password = '$_Password'";
+            		$result = mysql_query($Query);
+
+            		if(mysql_num_rows($result) == 0)
+            		{
+                		$return['success'] = false;
+                		unset($return['hash']);
+                		$return['message'] = 'Password does not match';
+            		}
+            		else
+            		{
+				$PAC = mysql_fetch_assoc($result);
+				$URLs = unserialize($PAC['urls']);
+
+                		foreach($URLs as $ID => $dbURL)
+                		{
+                    			if($_URL == $dbURL)
+                    			{
+                        			unset($URLs[$ID]);
+                        			break;
+                    			}
+                		}
+
+				sort($URLs);
+
+				$URLs = serialize($URLs);
+
+				$Query = "update pac set urls = '$URLs' where hash = '$_Hash' AND password = '$_Password'";
+				$result = mysql_query($Query);
+
+				if(mysql_errno() == 0)
+				{
+					$return['hash'] = $Hash;
+					$return['success'] = true;
+					$return['message'] = "URL(s) removed successfully!";
+				}
+				else
+				{
+					$return['success'] = false;
+					unset($return['hash']);
+					$return['message'] = mysql_error();
+				}
+			}
+		}
+
+		return $return;
+	}
+
+
+
+	function GetPACDetails($Hash,$memcache)
 	{
 		if($this->ProxyShard)
 		{
@@ -242,8 +269,15 @@ class API
 		}
 		else
 		{
+			$Hash = mysql_real_escape_string($Hash);
+
 			$Query = "select * from pac where hash = '$Hash'";
 			$result = mysql_query($Query);
+			if(mysql_num_rows($result) == 0)
+			{
+				return array('success' => false,'message' => "PAC File not found");
+			}
+
 			$mysql_return = mysql_fetch_assoc($result);
 
 			$FriendlyName = $mysql_return['name'];
@@ -254,7 +288,20 @@ class API
 			$URLs = unserialize($mysql_return['urls']);
 			$Tor = $mysql_return['tor'];
 
-            		$return = array('friendlyname' => $FriendlyName, 'description' => $Description, 'urls' => $URLs,'localproxy' => $Tor,'ro' => $Ro,'hash' => $Hash);
+			$hydratedURLs = array();
+			foreach($URLs as $ID => $URL)
+                    	{
+				if(isset($memcache) && $memcache->get($URL) == "blocked")
+				{
+					$hydratedURLs[] = array('url' => $URL, 'blocked' => true);
+				}
+				else
+				{
+					$hydratedURLs[] = array('url' => $URL, 'blocked' => false);	
+				}
+			}
+
+            		$return = array('friendlyname' => $FriendlyName, 'description' => $Description, 'urls' => $hydratedURLs,'localproxy' => $Tor,'ro' => $Ro,'hash' => $Hash, 'success' => true);
 		}
         	return $return;
 	}
@@ -262,23 +309,25 @@ class API
 
 	function PushToS3($Hash,$S3APIKey,$S3APISecret)
 	{
-		$returnArray = array('success' => 'ok', 'url' => '');
+		$returnArray = array('success' => true, 'url' => '', 'message' => 'Never set');
 
 		if(empty($Hash) || strlen($Hash) < 32)
 		{
-			$returnArray['success'] = 'fail';
+			$returnArray['success'] = false;
 			$returnArray['message'] = "Incorrect Hash";
 		}
 		else
 		{
 			if($this->ProxyShard)
 			{
-				$Payload = array('hash' => $Hash, 'auth' => md5($APIKey . $Hash), 'api' => $this->APIKey);
-		        $return = $this->MakeRequest($Payload,'pushtos3');
+				$Payload = array('hash' => $Hash, 'auth' => md5($this->APIKey . $Hash), 'api' => $this->APIKey);
+		        	$return = $this->MakeRequest($Payload,'push_to_s3');
 				return $return;
 			}
 			else
 			{
+				$Hash = mysql_real_escape_string($Hash);
+
 				$Query = "select * from pac where hash = '$Hash'";
 				$result = mysql_query($Query);
 				$PAC = mysql_fetch_assoc($result);
@@ -290,58 +339,58 @@ class API
 				$Ro = $PAC['ro'];
 				$URLs = unserialize($PAC['urls']);
 				$Tor = $PAC['tor'];	
-			}
+////////}
+				$file_type = "application/x-ns-proxy-autoconfig";
+				$aws_object =  $Hash.'.pac';
+            			$aws_bucket = 'packetflagon-000001';
+				//$aws_bucket = 'pac-' . $Hash;
 
-			$file_type = "application/x-ns-proxy-autoconfig";
-			$aws_object =  $Hash.'.pac';
-            		$aws_bucket = 'packetflagon-000001';
-			//$aws_bucket = 'pac-' . $Hash;
+				$PAC = "function FindProxyForURL(url, host)\n{\n";
 
-			$PAC = "function FindProxyForURL(url, host)\n{\n";
-
-			if(empty($URLs))
-			{
-				$URLs = array('wtfismyip.com');
-			}
-
-			$String = "";
-			foreach($URLs as $URL)
-			{
-				$String .= '"'.strtolower($URL).'"' . ',';
-			}
-
-			$String = substr($String,0,strlen($String) - 1);
-			$PAC .= "   var list = new Array($String);\n\n";
-
-			if($Tor == 1)
-			{
-				$Proxy = "localhost";
-			}
-			else
-			{
-				$rand = rand ( 0, 8);
-				if($rand < 1)
+				if(empty($URLs))
 				{
-					$Proxy = 'proxy-1-1.routingpacketsisnotacrime.uk';
+					$URLs = array('wtfismyip.com');
+				}
+
+				$String = "";
+				foreach($URLs as $URL)
+				{
+					$String .= '"'.strtolower($URL).'"' . ',';
+				}
+
+				$String = substr($String,0,strlen($String) - 1);
+				$PAC .= "   var list = new Array($String);\n\n";
+
+				if($Tor == 1)
+				{
+					$Proxy = "localhost";
 				}
 				else
 				{
-					$Proxy = 'proxy-1-2.routingpacketsisnotacrime.uk';
+					$rand = rand ( 0, 8);
+
+					if($rand < 1)
+					{
+						$Proxy = 'proxy-1-1.routingpacketsisnotacrime.uk';
+					}
+					else
+					{
+						$Proxy = 'proxy-1-2.routingpacketsisnotacrime.uk';
+					}
 				}
-			}
 
-			if($Tor == 1)
-			{
-				$Port = 9050;
-				$Type = "SOCKS";
-			}
-			else
-			{
-				$Port = '8080';
-				$Type = 'PROXY';
-			}
+				if($Tor == 1)
+				{
+					$Port = 9050;
+					$Type = "SOCKS";
+				}
+				else
+				{
+					$Port = '8080';
+					$Type = 'PROXY';
+				}
 
-			$PAC .= "
+				$PAC .= "
     for(var i=0; i < list.length; i++)
     {
         if (shExpMatch(host, list[i]))
@@ -353,85 +402,86 @@ class API
 }
 ";
 
-		    $file_data = $PAC;
-
-		    $fp = fsockopen("s3.amazonaws.com", 80, $errno, $errstr, 30);
-		    if (!$fp)
-		    {
-			    $returnArray['success'] = 'fail';
-			    $returnArray['message'] = "$errstr ($errno)\n";
-		    }
-		    else
-		    {
-			    // Creating or updating bucket
-			    $dt = gmdate('r'); // GMT based timestamp
-
-			    // preparing String to Sign    (see AWS S3 Developer Guide)
-			    $string2sign = "PUT
+		    		$file_data = $PAC;
+		    		$fp = fsockopen("s3.amazonaws.com", 80, $errno, $errstr, 30);
+		    		if (!$fp)
+		    		{
+			    		$returnArray['success'] = false;
+			    		$returnArray['message'] = "$errstr ($errno)\n";
+		    		}
+		    		else
+		    		{
+			    		// Creating or updating bucket
+			    		$dt = gmdate('r'); // GMT based timestamp
+			    		// preparing String to Sign    (see AWS S3 Developer Guide)
+$string2sign = "PUT
 
 
-			{$dt}
-			/{$aws_bucket}";
+{$dt}
+/{$aws_bucket}";
 
-			    // preparing HTTP PUT query
-			    $query = "PUT /{$aws_bucket} HTTP/1.1
-				Host: s3.amazonaws.com
-				Connection: keep-alive
-				Date: $dt
-				Authorization: AWS {$S3APIKey}:".$this->amazon_hmac($string2sign,$S3APISecret)."\n\n";
-
-			    $resp = $this->sendREST($fp, $query);
-			    if (strpos($resp, '<Error>') !== false)
-			    {
-				    $BucketError = $resp;
-				    //print($BucketError ."<br/><br/>");
-				    $returnArray['success'] = 'fail';
-				    $returnArray['message'] = $BucketError;
-				    print(json_encode($returnArray));
-				    die();
-			    }
-
-			    // Uploading object -----------------------------------------------------------------
-			    $file_length = strlen($file_data); // for Content-Length HTTP field
-
-			    $dt = gmdate('r'); // GMT based timestamp
-			    // preparing String to Sign    (see AWS S3 Developer Guide)
-			    $string2sign = "PUT
-
-			{$file_type}
-			{$dt}
-			x-amz-acl:public-read
-				/{$aws_bucket}/{$aws_object}";
 
 			    // preparing HTTP PUT query
-			    $query = "PUT /{$aws_bucket}/{$aws_object} HTTP/1.1
-				Host: s3.amazonaws.com
-				x-amz-acl: public-read
-				Connection: keep-alive
-				Content-Type: {$file_type}
-			Content-Length: {$file_length}
+			    		$query = "PUT /{$aws_bucket} HTTP/1.1
+Host: s3.amazonaws.com
+Connection: keep-alive
 Date: $dt
-	      Authorization: AWS {$S3APIKey}:".$this->amazon_hmac($string2sign,$S3APISecret)."\n\n";
-                $query .= $file_data;
+Authorization: AWS {$S3APIKey}:".$this->amazon_hmac($string2sign,$S3APISecret)."\n\n";
 
-                $resp = $this->sendREST($fp, $query);
-                if (strpos($resp, '<Error>') !== false)
-                {
-	                $PutError = $Resp;
-	                $returnArray['success'] = 'fail';
-	                $returnArray['message'] = $BucketError;
-                }
-                else
-                {
-	                fclose($fp);
-                }
+			    		$resp = $this->sendREST($fp, $query);
+			    		if (strpos($resp, '<Error>') !== false)
+					{
+				    		$BucketError = $resp;
+				    		//print($BucketError ."<br/><br/>");
+				    		$returnArray['success'] = false;
+				    		$returnArray['message'] = $BucketError;
+				    		print(json_encode($returnArray));
+				    		die();
+			    		}
 
-                $returnArray['success'] = 'ok';
-                $returnArray['url'] = "https://s3.amazonaws.com/{$aws_bucket}/{$aws_object}";
-            }
-	    }
-	    return $returnArray;
-    }
+			    		// Uploading object -----------------------------------------------------------------
+			    		$file_length = strlen($PAC); // for Content-Length HTTP field
+
+			    		$dt = gmdate('r'); // GMT based timestamp
+			    		// preparing String to Sign    (see AWS S3 Developer Guide)
+			    		$string2sign = "PUT
+
+{$file_type}
+{$dt}
+x-amz-acl:public-read
+/{$aws_bucket}/{$aws_object}";
+
+			    		// preparing HTTP PUT query
+			    		$query = "PUT /{$aws_bucket}/{$aws_object} HTTP/1.1
+Host: s3.amazonaws.com
+x-amz-acl: public-read
+Connection: keep-alive
+Content-Type: {$file_type}
+Content-Length: {$file_length}
+Date: $dt
+Authorization: AWS {$S3APIKey}:".$this->amazon_hmac($string2sign,$S3APISecret)."\n\n";
+                			$query .= $file_data;
+
+                			$resp = $this->sendREST($fp, $query);
+
+                			if (strpos($resp, '<Error>') !== false)
+                			{
+	                			$PutError = $Resp;
+	                			$returnArray['success'] = false;
+	                			$returnArray['message'] = "Error: " . $BucketError;
+                			}
+                			else
+                			{
+	                			fclose($fp);
+                			}
+
+                			$returnArray['success'] = true;
+                			$returnArray['url'] = "https://s3.amazonaws.com/{$aws_bucket}/{$aws_object}";
+            			}
+	    		}
+		return $returnArray;
+		}
+	}
 
 function GetProxyMeta()
 {
@@ -465,7 +515,7 @@ function GetProxyMeta()
 		$ProxyDetails['proxies'] = array(array('id' => '1-1', 'bw' => $Proxy1,'sync' => date('d M H:i'),'status' => 'ok'),
 				array('id' => '1-2', 'bw' => $Proxy2,'sync' => date('d M H:i'),'status' => 'ok'));
 	}
-	$ProxyDetails['success'] = 'ok';
+	$ProxyDetails['success'] = true;
 	return $ProxyDetails;
 }
 
@@ -473,7 +523,7 @@ function GetProxyMeta()
 private function MakeRequest($Payload,$Action)
 {
 	$ch = curl_init();
-	$url = $this->PFRoot . '/api/'.$Action;
+	$url = $this->PFRoot . '/api/1/?action='.$Action;
 	$fields_string = "";
 	foreach($Payload as $key=>$value) 
     	{
@@ -491,6 +541,8 @@ private function MakeRequest($Payload,$Action)
 	$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 	curl_close($ch); 
 
+	//print($data);
+
     	$json = json_decode($data,true);
 
     	if(isset($json['success']) && !empty($json['success']))
@@ -501,11 +553,11 @@ private function MakeRequest($Payload,$Action)
     	{
 		if(isset($json['message']) && !empty($json['message']))
                	{
-                       return array('success' => 'fail', 'message' => $json['message']);
+                       return array('success' => false, 'message' => $json['message']);
                	}
                	else
                	{
-                       return array('success' => 'fail', 'message' => 'An unknown error occured: ' . $httpCode);
+                       return array('success' => false, 'message' => 'An unknown error occured: ' . $httpCode);
                	}
     	}
 }
@@ -576,6 +628,10 @@ function getHost($Address)
 	$pattern = '/^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)*(\\.[A-Za-z]{2,})$/';
 
 	$parseUrl = parse_url(trim($Address));
+
+	/*if(!isset($parseUrl['host']))
+		return;*/
+
 	$URL = trim($parseUrl['host'] ? $parseUrl['host'] : array_shift(explode('/', $parseUrl['path'], 2)));
 
 	if(preg_match($pattern, $URL, $matches, PREG_OFFSET_CAPTURE) == 0)
