@@ -5,28 +5,13 @@
   RewriteCond %{SCRIPT_FILENAME} !-d
   RewriteCond %{SCRIPT_FILENAME} !-f
 
-
   #View
-  RewriteRule ^view/([^/]+)/?$ view.php?hash=$1 [NC,L]
+  RewriteRule ^view/([^/]+)/?$ view/index.php?hash=$1 [NC,L]
 
   #Create
-  RewriteRule ^create/?$ create.php [NC,L]
-  RewriteRule ^create/([^/]+)/?$ create.php?hash=$1 [NC,L]
-  
-  #about
-  RewriteRule ^about/?$ about.php [NC,L]
-
-  #How-to
-  RewriteRule ^how-to/?$ how-to.php [NC,L]
-  RewriteRule ^how-to/([^/]+)/?$ how-to.php?page=$1 [NC,L]
+  RewriteRule ^create/([^/\.]+)/?$ create/index.php?hash=$1 [NC,L]
   
   #PAC
-  RewriteRule ^pac/([^/]+)/?$ pac.php?hash=$1 [NC,L]
+  RewriteRule ^pac/([^/]+)/?$ pac/index.php?hash=$1 [NC,L]
 
-  #DeadHand
-  RewriteRule ^deadhand/?$ deadhand.php [NC,L]
-
-  #API
-  RewriteRule ^api/?$ how-to.php?page=api [NC,L]
-  RewriteRule ^api/([^/]+)/?$ api.php?action=$1 [NC,L]
 </IfModule>
