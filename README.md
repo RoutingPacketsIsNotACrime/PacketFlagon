@@ -10,6 +10,7 @@ Install
 * Move libs/config.example.php to libs/config.php
 * Edit various elements of libs/config.php _($FQDN, $ShardName & $PacketFlagonAPIKey at a minimum)_
 * Ensure your web server is configured to respect the .htaccess and that mod_rewrite _(or equivilent)_ is enabled
+* If running a standalone instance ensure you import DB_STRUCTURE.sql to your DB and set appropriate credentials in libs/config.php
 
 Open Source Licenses
 ----------
