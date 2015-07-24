@@ -116,7 +116,7 @@
 		<div class="row pad30">
 			<div class="col-md-9 pad15">
 		    <h1>Generating an API Key</h1>	
-            <p>To generate an API key you can use the form below or call the API directly using CuRL e.g.; <code>curl https://packetflagon.is/api/create -d '{"domain":"YOURSERVERNAME.TLD","contact":"youremail@YOURSERVERNAME.TLD"}'</code></p>
+            <p>To generate an API key you can use the form below or call the API directly using CuRL e.g.; <code>curl https://packetflagon.is/api/1/?action=create -d '{"domain":"YOURSERVERNAME.TLD","contact":"youremail@YOURSERVERNAME.TLD"}'</code></p>
 
             <div class="contact_form">  
 	            <div id="note"></div>
