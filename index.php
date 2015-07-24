@@ -34,7 +34,7 @@
 
 	if(!file_exists('libs/config.php'))
 	{
-		header('Location: //'.$FQDN .'/setup/');
+		header('Location: /setup/');
 		return;
 	}
 	else
