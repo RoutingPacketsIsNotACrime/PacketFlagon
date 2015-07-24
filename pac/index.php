@@ -47,13 +47,13 @@
 
 	if(!isset($PACDetails['urls']) || empty($PACDetails['urls']))
 	{
-		$PACDetails['urls'] = array('wtfismyip.com');
+		$PACDetails['urls'] = array(array('url'=> 'wtfismyip.com'));
 	}
 
 	$String = "";
 	foreach($PACDetails['urls'] as $Element)
 	{
-		$String .= '"'.strtolower($Element).'"' . ',';
+		$String .= '"'.strtolower($Element['url']).'"' . ',';
 	}
 	$String = substr($String,0,strlen($String) - 1);
 	print("var list = new Array($String);\n\n");

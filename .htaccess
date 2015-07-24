@@ -12,6 +12,6 @@
   RewriteRule ^create/([^/\.]+)/?$ create/index.php?hash=$1 [NC,L]
   
   #PAC
-  RewriteRule ^pac/([^/]+)/?$ pac/index.php?hash=$1 [NC,L]
+  RewriteRule ^pac/([^/\.]+)/?$ pac/index.php?hash=$1 [NC,L]
 
 </IfModule>
