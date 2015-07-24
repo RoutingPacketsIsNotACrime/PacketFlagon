@@ -31,6 +31,7 @@
 
         //Fuck censorship
         header('X-Fuck-You-Censors: Wanna play a game of whack a mole?');
+	header("Access-Control-Allow-Origin: packetflagon.is");
 
 	if(file_exists('../libs/config.php'))
         {
@@ -197,7 +198,7 @@ function MakeAPIRequest()
 
     $.ajax({
             type: "POST",
-            url: "https://packetflagon.is/api/create",
+            url: "https://packetflagon.is/api/1/?action=create",
             data: combinedObj,
             crossDomain: true,
             contentType: "application/x-www-form-urlencoded",
