@@ -230,7 +230,7 @@
                         <h4><span>Clone this PAC</span></h4>
 			<p>Cloning this PAC allows you to create your own version, add or remove URLs, set your own password etc. It does not affect the original version.</p>
 
-			<a href="//<?php print($FQDN); ?>/create/b718ce9b276bc2f10af90fe1d5b33c0d"><button type="button" class="btn btn-primary btn-lg"><i class="fa fa-code-fork"></i> &nbsp; Clone</button></a>
+			<a href="//<?php print($FQDN); ?>/create/<?php print($Hash);?>"><button type="button" class="btn btn-primary btn-lg"><i class="fa fa-code-fork"></i> &nbsp; Clone</button></a>
 
 			<div class="pad15"></div>
 			
@@ -261,7 +261,7 @@
 			<h2><span>PAC: <?php print($Hash); ?></span></h2>
 			
 			<p>
-				The unique URL to add to your browser proxy configuration is:<br/><strong>http://<?php print($FQDN); ?>/pac/<?php print($Hash); ?></strong>
+				The unique URL to add to your browser proxy configuration is:<br/><strong>https://<?php print($FQDN); ?>/pac/<?php print($Hash); ?></strong>
 			</p>
 			
 			<p>
@@ -330,7 +330,7 @@ google.com, facebook.com, thepiratebay.org" class="col-xs-12 col-sm-12 col-md-12
 
                                                 <div class="clear"></div>
 					
-					<a href="javascript:void(0)" onclick="AddURLs('b718ce9b276bc2f10af90fe1d5b33c0d');"><button type="button" class="btn btn-primary btn-lg">Add URLs</button></a>
+					<a href="javascript:void(0)" onclick="AddURLs('<?php print($Hash);?>');"><button type="button" class="btn btn-primary btn-lg">Add URLs</button></a>
 					</div>
 				</div>
 				<br/>
@@ -441,7 +441,7 @@ function AddURLs(H)
         var combinedObj = {'password': $("#edit_password").val(), 'urls': $("#urls").val(), 'update': 'add_url', 'hash': H };
         $.ajax({
 type: "POST",
-url: "http://<?php print($FQDN); ?>/update_pac.php",
+url: "//<?php print($FQDN); ?>/update_pac.php",
 data: combinedObj,
 contentType: "application/x-www-form-urlencoded",
 success: function(msg)
@@ -472,7 +472,7 @@ function PushToS3(H)
         var combinedObj = {'hash': H };
         $.ajax({
 type: "POST",
-url: "http://<?php print($FQDN); ?>/put_to_s3.php",
+url: "//<?php print($FQDN); ?>/put_to_s3.php",
 data: combinedObj,
 contentType: "application/x-www-form-urlencoded",
 success: function(msg)

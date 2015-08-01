@@ -29,7 +29,6 @@
         OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     */
 
-	require_once('libs/Smarty.class.php');
     	require_once('libs/config.php');
     	require_once('libs/api.php');
 

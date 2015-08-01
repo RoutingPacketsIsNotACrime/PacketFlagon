@@ -26,6 +26,5 @@ Open Source Licenses
 |js/jPages.js		| MIT		| Luís Almeida |
 |font/fontawesome	| MIT		| @davegandy - http://fontawesome.io - @fontawesome |
 |font/zsocial		| MIT		| Sam Collins (@smcllns) |  
-|libs/Smarty		| LGPLv3	| New Digital Group Inc |
 |			| 		| | 
 |All other code		| BSD		| Brass Horn Communications (@BrassHornComms) |
